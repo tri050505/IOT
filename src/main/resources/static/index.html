@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trang chủ - Smart Sensor</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1>Trang chủ</h1>
+        <p>Tổng quan hoạt động hệ thống cảm biến thông minh.</p>
+      </div>
+      <span class="connected">Connected</span>
+    </header>
+
+    <div class="content">
+      <!-- 3 thẻ thông số -->
+      <div class="cards">
+        <div class="card orange">
+          <div class="stat-head"><span>Ánh sáng</span><span class="stat-icon" data-icon="bulb"></span></div>
+          <div class="stat-body"><div class="stat-value">320 Lux</div></div>
+        </div>
+        <div class="card red">
+          <div class="stat-head"><span>Nhiệt độ</span><span class="stat-icon" data-icon="temp"></span></div>
+          <div class="stat-body"><div class="stat-value">28.5°C</div></div>
+        </div>
+        <div class="card blue">
+          <div class="stat-head"><span>Độ ẩm</span><span class="stat-icon" data-icon="drop"></span></div>
+          <div class="stat-body"><div class="stat-value">65%</div></div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <!-- Biểu đồ -->
+        <div class="card">
+          <div class="chart-head">
+            <span class="card-title">Biểu đồ xu hướng (24h)</span>
+            <div class="legend">
+              <span><i style="background:#f59e0b"></i>Ánh sáng</span>
+              <span><i style="background:#ef4444"></i>Nhiệt độ</span>
+              <span><i style="background:#3b82f6"></i>Độ ẩm</span>
+            </div>
+          </div>
+          <div class="chart-wrap" id="chart"></div>
+          <p class="chart-note">Rê chuột vào biểu đồ để xem giá trị từng thời điểm.</p>
+        </div>
+
+        <!-- Điều khiển thiết bị -->
+        <div class="card">
+          <span class="card-title">Điều khiển thiết bị</span>
+          <div class="device">
+            <span class="device-icon" data-icon="bulb"></span>
+            <div class="device-info"><b>Thiết bị 1</b><small id="status1">Đèn chiếu sáng - Đang bật</small></div>
+            <label class="switch"><input type="checkbox" id="dev1" data-name="Thiết bị 1" checked><span class="slider"></span></label>
+          </div>
+          <div class="device">
+            <span class="device-icon" data-icon="bulb"></span>
+            <div class="device-info"><b>Thiết bị 2</b><small id="status2">Đèn chiếu sáng - Đang tắt</small></div>
+            <label class="switch"><input type="checkbox" id="dev2" data-name="Thiết bị 2"><span class="slider"></span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

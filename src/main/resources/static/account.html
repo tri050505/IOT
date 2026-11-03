@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tài khoản - Smart Sensor</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<aside class="sidebar" id="sidebar"></aside>
+
+<div class="main">
+  <header class="topbar">
+    <div>
+      <h1>Tài khoản</h1>
+      <p>Quản lý thông tin cá nhân và liên kết tài khoản.</p>
+    </div>
+    <span class="connected">Connected</span>
+  </header>
+
+  <div class="content">
+    <div class="card profile">
+      <div class="avatar" data-icon="user"></div>
+      <h2>Lê Minh Trí</h2>
+      <p class="mssv">MSSV: B23DCCN839</p>
+
+      <div class="section-title">Thông tin liên kết</div>
+
+      <div class="field">
+        <label>GitHub Link</label>
+        <div class="input-box"><span data-icon="link"></span><input id="github" type="text" placeholder="https://github.com/username"></div>
+      </div>
+      <div class="field">
+        <label>Figma Link</label>
+        <div class="input-box"><span data-icon="link"></span><input id="figma" type="text" placeholder="https://figma.com/file/..."></div>
+      </div>
+      <div class="field">
+        <label>PDF File</label>
+        <div class="dropzone" id="dropzone">
+          <span data-icon="upload"></span>
+          <b>Kéo thả file hoặc nhấn để tải lên</b>
+          <small>Hỗ trợ file định dạng PDF dung lượng tối đa 10MB</small>
+        </div>
+        <input type="file" id="pdfInput" accept="application/pdf,.pdf" hidden>
+
+        <div class="file-item" id="fileItem" hidden>
+          <span data-icon="file"></span>
+          <div><b id="fileName"></b><small id="fileSize"></small></div>
+          <a id="fileView" href="#" target="_blank">Xem</a>
+          <button id="fileRemove" title="Xóa file">✕</button>
+        </div>
+      </div>
+
+      <!-- Ô nhập Postman Link (mới thêm) -->
+      <div class="field">
+        <label>Postman Link</label>
+        <div class="input-box"><span data-icon="link"></span><input id="postman" type="text" placeholder="https://www.postman.com/..."></div>
+      </div>
+
+      <button class="btn-primary" id="saveBtn">Lưu thay đổi</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/common.js"></script>
+<script src="js/account.js"></script>
+</body>
+</html>

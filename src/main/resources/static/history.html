@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lịch sử - Smart Sensor</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1>Lịch sử</h1>
+        <p>Xem lịch sử các hoạt động điều khiển thiết bị.</p>
+      </div>
+      <span class="connected">Connected</span>
+    </header>
+
+    <div class="content">
+      <div class="toolbar">
+        <div class="search-box">
+          <span data-icon="search"></span>
+          <input id="searchInput" type="text" placeholder="Tìm kiếm theo thời gian...">
+        </div>
+
+        <!-- 3 dropdown lọc nhanh: JS tự điền các lựa chọn -->
+        <div class="filter-bar" id="filterBar"></div>
+
+        <div class="dropdown" id="sortDropdown">
+          <button class="btn-outline" id="sortBtn"><span data-icon="sort"></span>Sắp xếp thời gian<span data-icon="down"></span></button>
+          <div class="dropdown-menu">
+            <div class="dropdown-item" data-order="desc">Mới nhất trước</div>
+            <div class="dropdown-item active" data-order="asc">Cũ nhất trước</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <table class="table">
+          <thead id="thead"></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="table-footer">
+          <div class="footer-left">
+            <span id="info"></span>
+            <select id="pageSizeSelect" class="select-box small"></select>
+          </div>
+          <div class="pager" id="pager"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script src="js/table.js"></script>
+  <script src="js/history.js"></script>
+</body>
+</html>

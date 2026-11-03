@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dữ liệu cảm biến - Smart Sensor</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1>Dữ liệu cảm biến</h1>
+        <p>Xem chi tiết dữ liệu thời gian thực được thu thập từ mạng lưới cảm biến.</p>
+      </div>
+      <span class="connected">Connected</span>
+    </header>
+
+    <div class="content">
+      <div class="toolbar">
+        <div class="search-group">
+          <select id="searchMode" class="select-box"></select>
+          <div class="search-box">
+            <span data-icon="search"></span>
+            <input id="searchInput" type="text">
+          </div>
+        </div>
+        <div class="dropdown" id="sortDropdown">
+          <button class="btn-outline" id="sortBtn"><span data-icon="sort"></span>Sắp xếp thời gian<span data-icon="down"></span></button>
+          <div class="dropdown-menu">
+            <div class="dropdown-item" data-order="desc">Mới nhất trước</div>
+            <div class="dropdown-item active" data-order="asc">Cũ nhất trước</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <table class="table">
+          <thead id="thead"></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="table-footer">
+          <div class="footer-left">
+            <span id="info"></span>
+            <select id="pageSizeSelect" class="select-box small"></select>
+          </div>
+          <div class="pager" id="pager"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script src="js/table.js"></script>
+  <script src="js/sensors.js"></script>
+</body>
+</html>
