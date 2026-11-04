@@ -1,5 +1,6 @@
 const MAX_SIZE = 10 * 1024 * 1024;   // 10MB - sửa giới hạn dung lượng ở đây
-let selectedFile = null;
+let selectedFile = null;             // file vừa chọn, chưa lưu
+let savedPdfName = "";               // tên file đã lưu trên server
 
 const $ = id => document.getElementById(id);
 const dropzone = $("dropzone"), input = $("pdfInput");
@@ -17,7 +18,26 @@ dropzone.addEventListener("drop", e => {
   if (e.dataTransfer.files[0]) chooseFile(e.dataTransfer.files[0]);
 });
 
-// ----- Kiểm tra và hiển thị file đã chọn -----
+// ----- Hiển thị khung thông tin file (file vừa chọn hoặc file đã lưu trên server) -----
+function renderFile() {
+  if (selectedFile) {
+    $("fileName").textContent = selectedFile.name;
+    $("fileSize").textContent = (selectedFile.size / 1024 / 1024).toFixed(2) + " MB (chưa lưu)";
+    $("fileView").href = URL.createObjectURL(selectedFile);
+    $("fileRemove").hidden = false;
+    $("fileItem").hidden = false;
+  } else if (savedPdfName) {
+    $("fileName").textContent = savedPdfName;
+    $("fileSize").textContent = "Đã lưu trên server";
+    $("fileView").href = API_URL + "/api/account/pdf";
+    $("fileRemove").hidden = true;
+    $("fileItem").hidden = false;
+  } else {
+    $("fileItem").hidden = true;
+  }
+}
+
+// ----- Kiểm tra file vừa chọn -----
 function chooseFile(file) {
   if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
     showToast("Chỉ chấp nhận file PDF", true); return;
@@ -26,19 +46,18 @@ function chooseFile(file) {
     showToast("File vượt quá 10MB", true); return;
   }
   selectedFile = file;
-  $("fileName").textContent = file.name;
-  $("fileSize").textContent = (file.size / 1024 / 1024).toFixed(2) + " MB";
-  $("fileView").href = URL.createObjectURL(file);   // bấm "Xem" để mở PDF
-  $("fileItem").hidden = false;
-  showToast("Đã chọn file " + file.name);
+  renderFile();
+  showToast("Đã chọn file " + file.name + ". Bấm Lưu thay đổi để tải lên");
 }
 
 $("fileRemove").addEventListener("click", () => {
-  selectedFile = null; input.value = ""; $("fileItem").hidden = true;
+  selectedFile = null;
+  input.value = "";
+  renderFile();
 });
 
-// ----- Lưu thay đổi -----
-$("saveBtn").addEventListener("click", () => {
+// ----- Lưu thay đổi: lưu 3 link rồi upload file (nếu có chọn file mới) -----
+$("saveBtn").addEventListener("click", async () => {
   const github = $("github").value.trim();
   const figma = $("figma").value.trim();
   const postman = $("postman").value.trim();
@@ -47,18 +66,35 @@ $("saveBtn").addEventListener("click", () => {
   if (figma && !figma.startsWith("http")) { showToast("Link Figma phải bắt đầu bằng http", true); return; }
   if (postman && !postman.startsWith("http")) { showToast("Link Postman phải bắt đầu bằng http", true); return; }
 
-  localStorage.setItem("account", JSON.stringify({ github, figma, postman, pdf: selectedFile ? selectedFile.name : "" }));
+  try {
+    await api("/api/account", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ github, figma, postman })
+    });
 
-  // Khi có backend thì gửi file lên server như sau:
-  // const fd = new FormData();
-  // fd.append("file", selectedFile);
-  // fetch("/api/upload", { method: "POST", body: fd });
-
-  showToast("Đã lưu thay đổi");
+    if (selectedFile) {
+      const fd = new FormData();
+      fd.append("file", selectedFile);
+      const r = await api("/api/account/upload", { method: "POST", body: fd });
+      savedPdfName = r.pdfName;
+      selectedFile = null;
+      input.value = "";
+      renderFile();
+    }
+    showToast("Đã lưu thay đổi");
+  } catch (e) {
+    showToast("Lưu thất bại: " + e.message, true);
+  }
 });
 
-// ----- Nạp lại dữ liệu đã lưu khi mở trang -----
-const saved = JSON.parse(localStorage.getItem("account") || "{}");
-$("github").value = saved.github || "";
-$("figma").value = saved.figma || "";
-$("postman").value = saved.postman || "";
+// ----- Nạp dữ liệu từ server khi mở trang -----
+api("/api/account")
+    .then(a => {
+      $("github").value = a.github || "";
+      $("figma").value = a.figma || "";
+      $("postman").value = a.postman || "";
+      savedPdfName = a.pdfName || "";
+      renderFile();
+    })
+    .catch(() => showToast("Không tải được thông tin tài khoản", true));

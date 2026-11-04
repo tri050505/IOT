@@ -56,33 +56,39 @@ public class AccountController {
 
     // Upload file PDF
     @PostMapping("/upload")
-    public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file) throws IOException {
-        String name = file.getOriginalFilename() == null ? "file.pdf" : file.getOriginalFilename();
+    public ResponseEntity<?> upload(@RequestParam(value = "file", required = false) MultipartFile file) {
+        try {
+            if (file == null || file.isEmpty())
+                return ResponseEntity.badRequest().body(Map.of("message", "Chưa chọn file để upload"));
 
-        if (!name.toLowerCase().endsWith(".pdf"))
-            return ResponseEntity.badRequest().body(Map.of("message", "Chỉ chấp nhận file PDF"));
-        if (file.getSize() > MAX_SIZE)
-            return ResponseEntity.badRequest().body(Map.of("message", "File vượt quá 10MB"));
+            String name = file.getOriginalFilename() == null ? "file.pdf" : file.getOriginalFilename();
+            if (!name.toLowerCase().endsWith(".pdf"))
+                return ResponseEntity.badRequest().body(Map.of("message", "Chỉ chấp nhận file PDF"));
+            if (file.getSize() > MAX_SIZE)
+                return ResponseEntity.badRequest().body(Map.of("message", "File vượt quá 10MB"));
 
-        // Kiểm tra nội dung thật sự là PDF (file PDF luôn bắt đầu bằng %PDF)
-        byte[] head = file.getInputStream().readNBytes(4);
-        if (!"%PDF".equals(new String(head, StandardCharsets.US_ASCII)))
-            return ResponseEntity.badRequest().body(Map.of("message", "File không phải PDF hợp lệ"));
+            // Đọc cả file vào bộ nhớ (tối đa 10MB) rồi kiểm tra đầu file có đúng là PDF không
+            byte[] data = file.getBytes();
+            if (data.length < 4 || !"%PDF".equals(new String(data, 0, 4, StandardCharsets.US_ASCII)))
+                return ResponseEntity.badRequest().body(Map.of("message", "File không phải PDF hợp lệ"));
 
-        // Lưu bằng tên ngẫu nhiên (không dùng tên gốc để tránh lỗi bảo mật)
-        Path dir = Paths.get(uploadDir);
-        Files.createDirectories(dir);
-        String saved = UUID.randomUUID() + ".pdf";
-        file.transferTo(dir.resolve(saved).toAbsolutePath());
+            // Lưu bằng tên ngẫu nhiên (không dùng tên gốc để tránh lỗi bảo mật)
+            Path dir = Paths.get(uploadDir).toAbsolutePath();
+            Files.createDirectories(dir);
+            String saved = UUID.randomUUID() + ".pdf";
+            Files.write(dir.resolve(saved), data);
 
-        Account a = get();
-        a.setPdfName(name);
-        a.setPdfFile(saved);
-        repo.save(a);
+            Account a = get();
+            a.setPdfName(name);
+            a.setPdfFile(saved);
+            repo.save(a);
 
-        return ResponseEntity.ok(Map.of("pdfName", name));
+            return ResponseEntity.ok(Map.of("pdfName", name));
+        } catch (Exception e) {
+            e.printStackTrace();   // in lỗi chi tiết ra Console của IntelliJ
+            return ResponseEntity.status(500).body(Map.of("message", "Lỗi server: " + e));
+        }
     }
-
     // Mở file PDF đã upload
     @GetMapping("/pdf")
     public ResponseEntity<Resource> pdf() {

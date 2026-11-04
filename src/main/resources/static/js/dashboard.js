@@ -1,55 +1,102 @@
-// ============ 1. CỘT NHỎ TRONG 3 THẺ ============
-document.querySelectorAll(".mini-bars").forEach(el => {
-  const nums = el.dataset.bars.split(",").map(Number);
-  const max = Math.max(...nums);
-  el.innerHTML = nums.map(n => `<div style="height:${(n / max) * 100}%"></div>`).join("");
-});
+// ============ 1. SỐ LIỆU 3 Ô (cập nhật mỗi 2 giây) ============
+async function loadLatest() {
+  try {
+    const d = await api("/api/sensors/latest");
+    if (!d.hasData) return;
+    document.getElementById("lightVal").textContent = Math.round(d.light) + " Lux";
 
+    const dhtError = d.temperature === 0 && d.humidity === 0;   // DHT11 đọc lỗi
+    document.getElementById("tempVal").textContent = dhtError ? "Lỗi" : d.temperature.toFixed(1) + "°C";
+    document.getElementById("humVal").textContent = dhtError ? "Lỗi" : Math.round(d.humidity) + "%";
+  } catch (e) { console.log(e); }
+}
+loadLatest();
+setInterval(loadLatest, 2000);
 
-// ============ 2. BẬT / TẮT THIẾT BỊ  ============
-// ============ 2. BẬT / TẮT THIẾT BỊ  ============
-const LOADING_TIME = 500;   // thời gian quay (mili-giây). 500 = 0,5 giây
-
-// Đổi màu biểu tượng đèn: đang bật thì xanh, đang tắt thì xám
+// ============ 2. BẬT / TẮT THIẾT BỊ ============
+// Đổi màu bóng đèn: đang bật thì xanh, đang tắt thì xám
 function updateBulb(sw) {
-  const bulb = sw.closest(".device").querySelector(".device-icon");
-  bulb.classList.toggle("off", !sw.checked);
+  sw.closest(".device").querySelector(".device-icon").classList.toggle("off", !sw.checked);
 }
 
+function setStatusText(sw) {
+  document.getElementById("status" + sw.id.slice(-1)).textContent =
+      "Đèn chiếu sáng - Đang " + (sw.checked ? "bật" : "tắt");
+}
+
+// Nạp trạng thái 2 đèn từ server (khi mở trang và mỗi 5 giây)
+async function loadDevices() {
+  try {
+    const list = await api("/api/devices");
+    list.forEach(dv => {
+      const sw = document.getElementById("dev" + dv.code.slice(-1));   // LED1 -> dev1
+      if (!sw || sw.disabled) return;                                   // đang xử lý thì bỏ qua
+      sw.checked = dv.on;
+      updateBulb(sw);
+      setStatusText(sw);
+    });
+  } catch (e) { console.log(e); }
+}
+loadDevices();
+setInterval(loadDevices, 5000);
+
+// Bấm công tắc: gọi API, chờ ESP phản hồi (vòng quay chính là thời gian chờ thật)
 document.querySelectorAll(".switch input").forEach(sw => {
-  updateBulb(sw);   // đặt màu ban đầu khi mở trang (Thiết bị 2 mặc định tắt nên sẽ xám)
+  sw.addEventListener("change", async () => {
+    const box = sw.parentElement;
+    const wantOn = sw.checked;
 
-  sw.addEventListener("change", () => {
-    const box = sw.parentElement;                                   // thẻ <label class="switch">
-    const status = document.getElementById("status" + sw.id.slice(-1));
-    const state = sw.checked ? "bật" : "tắt";
-
-    // bắt đầu loading: hiện vòng quay, khóa nút để không bấm liên tục
     box.classList.add("loading");
     sw.disabled = true;
-    status.textContent = "Đang xử lý...";
+    document.getElementById("status" + sw.id.slice(-1)).textContent = "Đang xử lý...";
 
-    // sau 0,5 giây: tắt vòng quay, đổi màu đèn, cập nhật trạng thái
-    setTimeout(() => {
-      box.classList.remove("loading");
-      sw.disabled = false;
-      updateBulb(sw);
-      status.textContent = "Đèn chiếu sáng - Đang " + state;
-      showToast(sw.dataset.name + " đã " + state);
-    }, LOADING_TIME);
+    try {
+      const r = await api("/api/devices/LED" + sw.id.slice(-1) + "/control", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ on: wantOn })
+      });
+      if (r.success) {
+        showToast(sw.dataset.name + " đã " + (wantOn ? "bật" : "tắt"));
+      } else {
+        sw.checked = !wantOn;                  // thất bại: trả công tắc về vị trí cũ
+        showToast(r.message, true);
+      }
+    } catch (e) {
+      sw.checked = !wantOn;
+      showToast("Không kết nối được server", true);
+    }
+
+    box.classList.remove("loading");
+    sw.disabled = false;
+    updateBulb(sw);
+    setStatusText(sw);
   });
 });
+
 // ============ 3. BIỂU ĐỒ XU HƯỚNG ============
-// min/max là thang đo của từng đường (chia đều thành 4 khoảng nên có 5 mức).
-// Sửa số liệu ở values; nếu đổi số liệu vượt thang thì sửa min/max cho phù hợp.
+// min/max là thang đo của từng cột (chia 4 khoảng nên có 5 mức).
+// Giá trị vượt thang sẽ bị chặn ở mép biểu đồ.
 const chartData = {
-  labels: ["00:00","02:00","04:00","06:00","08:00","10:00","12:00","14:00","16:00","18:00","20:00","22:00"],
+  labels: [],
   series: [
-    { name: "Ánh sáng", unit: " Lux", color: "#f59e0b", min: 0,  max: 1000, values: [20, 15, 60, 300, 520, 680, 820, 900, 760, 480, 220, 90] },
-    { name: "Nhiệt độ", unit: "°C",   color: "#ef4444", min: 20, max: 36,   values: [24, 23.5, 23, 25, 27.5, 30, 32, 33, 31.5, 29, 26.5, 25] },
-    { name: "Độ ẩm",    unit: "%",    color: "#3b82f6", min: 40, max: 100,  values: [82, 84, 86, 78, 70, 62, 56, 52, 58, 66, 74, 79] },
+    { name: "Ánh sáng", unit: " Lux", color: "#f59e0b", min: 0,  max: 1024, values: [] },
+    { name: "Nhiệt độ", unit: "°C",   color: "#ef4444", min: 20, max: 40,   values: [] },
+    { name: "Độ ẩm",    unit: "%",    color: "#3b82f6", min: 20, max: 100,  values: [] },
   ],
 };
+
+// Lấy dữ liệu biểu đồ từ server (mỗi 60 giây)
+async function loadChart() {
+  try {
+    const c = await api("/api/sensors/chart");
+    chartData.labels = c.labels;
+    chartData.series[0].values = c.light;
+    chartData.series[1].values = c.temperature;
+    chartData.series[2].values = c.humidity;
+    drawChart();
+  } catch (e) { console.log(e); }
+}
 
 // Đường cong mượt (Catmull-Rom -> Bezier)
 function smoothPath(pts) {
@@ -63,17 +110,27 @@ function smoothPath(pts) {
 
 function drawChart() {
   const box = document.getElementById("chart");
-  const W = box.clientWidth, H = box.clientHeight;
-  const pad = { l: 56, r: 104, t: 30, b: 30 };     // l: chừa cột Ánh sáng, r: chừa 2 cột Nhiệt độ + Độ ẩm
   const n = chartData.labels.length;
+
+  // Chưa đủ dữ liệu thì báo, không vẽ
+  if (n < 2) {
+    box.innerHTML = '<p class="chart-note" style="padding:100px 0;text-align:center">Chưa đủ dữ liệu để vẽ biểu đồ (cần dữ liệu của ít nhất 2 mốc giờ).</p>';
+    return;
+  }
+
+  const W = box.clientWidth, H = box.clientHeight;
+  const pad = { l: 56, r: 104, t: 30, b: 30 };     // l: cột Ánh sáng, r: 2 cột Nhiệt độ + Độ ẩm
   const stepX = (W - pad.l - pad.r) / (n - 1);
   const innerH = H - pad.t - pad.b;
   const X = i => pad.l + i * stepX;
   const STEPS = 4;                                   // 4 khoảng = 5 đường kẻ ngang
 
-  // đổi giá trị -> toạ độ y theo đúng thang min..max của từng đường
+  // đổi giá trị -> toạ độ y theo thang min..max của từng đường (chặn trong khung)
   const lines = chartData.series.map(s =>
-      s.values.map((v, i) => ({ x: X(i), y: pad.t + (1 - (v - s.min) / (s.max - s.min)) * innerH }))
+      s.values.map((v, i) => {
+        const r = Math.max(0, Math.min(1, (v - s.min) / (s.max - s.min)));
+        return { x: X(i), y: pad.t + (1 - r) * innerH };
+      })
   );
 
   let svg = `<svg width="${W}" height="${H}">`;
@@ -84,9 +141,8 @@ function drawChart() {
     svg += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y}" y2="${y}" stroke="#e5e7eb"/>`;
 
     chartData.series.forEach((s, k) => {
-      const tick = s.max - ((s.max - s.min) / STEPS) * g;           // giá trị của mức này
+      const tick = s.max - ((s.max - s.min) / STEPS) * g;
       const label = Number.isInteger(tick) ? tick : tick.toFixed(1);
-      // k = 0: cột trái (Ánh sáng); k = 1, 2: hai cột phải (Nhiệt độ, Độ ẩm)
       const x = k === 0 ? pad.l - 8 : W - pad.r + 8 + (k - 1) * 48;
       const anchor = k === 0 ? "end" : "start";
       svg += `<text x="${x}" y="${y + 4}" font-size="11" font-weight="600" fill="${s.color}" text-anchor="${anchor}">${label}</text>`;
@@ -138,5 +194,8 @@ function drawChart() {
     dots.forEach(c => c.style.display = "none");
   };
 }
+
 drawChart();
+loadChart();
+setInterval(loadChart, 60000);
 window.addEventListener("resize", drawChart);

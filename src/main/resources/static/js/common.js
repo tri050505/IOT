@@ -59,5 +59,34 @@ function formatTime(d) {
   const p = n => String(n).padStart(2, "0");
   return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
+// ===== GỌI API BACKEND =====
+// Frontend nằm trong thư mục static của Spring Boot nên để trống.
+// Nếu chạy frontend riêng thì đổi thành "http://localhost:8080"
+const API_URL = "";
 
+async function api(path, options) {
+  const res = await fetch(API_URL + path, options);
+  if (!res.ok) {
+    let msg = "Lỗi " + res.status;
+    try { const j = await res.json(); if (j.message) msg = j.message; } catch (e) {}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+// ===== NHÃN CONNECTED: hỏi backend mỗi 3 giây xem ESP còn online không =====
+async function updateConnected() {
+  const badge = document.querySelector(".connected");
+  if (!badge) return;
+  try {
+    const s = await api("/api/status");
+    badge.textContent = s.online ? "Connected" : "Device offline";
+    badge.classList.toggle("offline", !s.online);
+  } catch (e) {
+    badge.textContent = "Server offline";
+    badge.classList.add("offline");
+  }
+}
+updateConnected();
+setInterval(updateConnected, 3000);
 fillIcons();

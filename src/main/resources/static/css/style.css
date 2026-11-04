@@ -183,3 +183,6 @@ button, input { font-family: inherit; font-size: inherit; }
   .sidebar { width: 64px; } .sidebar .logo div, .menu a span { display: none; }
   .main { margin-left: 64px; } .cards, .dash-grid { grid-template-columns: 1fr; }
 }
+/* Nhãn Connected khi thiết bị mất kết nối */
+.connected.offline { background: #fee2e2; color: #b91c1c; }
+.connected.offline::before { background: #ef4444; }
