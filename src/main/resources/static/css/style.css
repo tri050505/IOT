@@ -119,6 +119,28 @@ button, input { font-family: inherit; font-size: inherit; }
 .dropdown-item.active::after { content: "✓"; }
 
 .table { width: 100%; border-collapse: collapse; }
+.time-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.copy-time-btn {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.copy-time-btn:hover {
+  background: #eff6ff;
+  color: var(--blue);
+  border-color: var(--blue);
+}
 .table th { background: #eef4ff; text-align: left; padding: 12px 14px; font-size: 13px; color: #374151; white-space: nowrap; }
 .table th:first-child { border-radius: 8px 0 0 8px; }
 .table th:last-child { border-radius: 0 8px 8px 0; }

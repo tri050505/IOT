@@ -54,6 +54,28 @@ function createDataTable(cfg) {
     // đồng bộ các dropdown lọc nhanh với bộ lọc hiện tại
     document.querySelectorAll(".filter-select").forEach(s => s.value = state.filters[s.dataset.key] || "");
   }
+  // ---------- Sao chép thời gian của bản ghi ----------
+  $("tbody").addEventListener("click", async e => {
+    const btn = e.target.closest(".copy-time-btn");
+
+    if (!btn) return;
+
+    const time = btn.dataset.copyTime;
+
+    try {
+      await navigator.clipboard.writeText(time);
+
+      const oldText = btn.textContent;
+      btn.textContent = "Đã copy";
+
+      setTimeout(() => {
+        btn.textContent = oldText;
+      }, 1200);
+
+    } catch (error) {
+      alert("Không thể sao chép thời gian!");
+    }
+  });
 
   // ---------- Phân trang: Trước 1 2 3 ... 12 Sau ----------
   function renderPager(total) {

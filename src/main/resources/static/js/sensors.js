@@ -21,7 +21,20 @@ api("/api/sensors")
           { key: "type",   label: "Loại cảm biến", filter: true },
           { key: "value",  label: "Giá trị",       filter: true, render: v => `<b>${v}</b>` },
           { key: "status", label: "Trạng thái",    filter: true, render: v => `<span class="badge ${statusClass[v]}">${v}</span>` },
-          { key: "time",   label: "Thời gian" },
+          {
+            key: "time",
+            label: "Thời gian",
+            render: v => `
+    <div class="time-cell">
+      <span>${v}</span>
+      <button class="copy-time-btn"
+              type="button"
+              data-copy-time="${v}">
+        Copy
+      </button>
+    </div>
+  `
+          },,
         ],
       });
     })

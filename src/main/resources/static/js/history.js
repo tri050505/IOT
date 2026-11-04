@@ -20,7 +20,20 @@ api("/api/history")
           { key: "device", label: "Thiết bị",   filter: true, render: v => `<div class="cell-flex">${icon("device")}<b>${v}</b></div>` },
           { key: "status", label: "Trạng thái", filter: true, render: v => `<span class="badge ${statusClass[v]}">${v}</span>` },
           { key: "action", label: "Hành động",  filter: true },
-          { key: "time",   label: "Thời gian" },
+          {
+            key: "time",
+            label: "Thời gian",
+            render: v => `
+    <div class="time-cell">
+      <span>${v}</span>
+      <button class="copy-time-btn"
+              type="button"
+              data-copy-time="${v}">
+        Copy
+      </button>
+    </div>
+  `
+          },,
         ],
       });
     })
