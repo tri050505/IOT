@@ -29,13 +29,44 @@ function renderFile() {
   } else if (savedPdfName) {
     $("fileName").textContent = savedPdfName;
     $("fileSize").textContent = "Đã lưu trên server";
-    $("fileView").href = API_URL + "/api/account/pdf";
+    $("fileView").href = "#";   // mở bằng hàm openSavedPdf() bên dưới để gửi kèm JWT
     $("fileRemove").hidden = true;
     $("fileItem").hidden = false;
   } else {
     $("fileItem").hidden = true;
   }
 }
+
+// ----- Bấm "Xem": mở file PDF đã lưu trên server -----
+// Trình duyệt mở link thẳng (thẻ <a>) sẽ KHÔNG gửi kèm JWT nên bị 401 và đòi đăng nhập lại.
+// Vì vậy phải tải file bằng fetch (có header Authorization) rồi mở bằng blob URL.
+$("fileView").addEventListener("click", async e => {
+  if (selectedFile) return;   // file vừa chọn: href đã là blob URL, để trình duyệt tự mở
+
+  e.preventDefault();
+  const win = window.open("", "_blank");   // mở tab ngay lúc bấm để không bị chặn popup
+
+  try {
+    const res = await fetch(API_URL + "/api/account/pdf", {
+      headers: { "Authorization": "Bearer " + sessionStorage.getItem("jwt_token") }
+    });
+
+    if (res.status === 401) {
+      if (win) win.close();
+      sessionStorage.removeItem("jwt_token");
+      window.location.replace("/login.html");
+      return;
+    }
+    if (!res.ok) throw new Error("Lỗi " + res.status);
+
+    const url = URL.createObjectURL(await res.blob());
+    if (win) win.location.href = url; else window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (err) {
+    if (win) win.close();
+    showToast("Không mở được file PDF: " + err.message, true);
+  }
+});
 
 // ----- Kiểm tra file vừa chọn -----
 function chooseFile(file) {

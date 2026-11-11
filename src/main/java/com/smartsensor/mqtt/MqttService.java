@@ -96,7 +96,10 @@ public class MqttService {
             client.subscribe(new String[]{TOPIC_SENSOR, TOPIC_FEEDBACK, TOPIC_STATUS});
             System.out.println("[MQTT] Đã kết nối broker " + broker);
         } catch (MqttException e) {
-            System.err.println("[MQTT] Chưa kết nối được broker: " + e.getMessage());
+            System.err.println("[MQTT] Chưa kết nối được broker " + broker
+                    + " | reasonCode=" + e.getReasonCode()
+                    + " | " + e.getMessage()
+                    + (e.getCause() != null ? " | nguyên nhân: " + e.getCause() : ""));
         }
     }
 

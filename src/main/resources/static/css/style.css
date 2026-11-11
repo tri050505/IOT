@@ -208,3 +208,113 @@ button, input { font-family: inherit; font-size: inherit; }
 /* Nhãn Connected khi thiết bị mất kết nối */
 .connected.offline { background: #fee2e2; color: #b91c1c; }
 .connected.offline::before { background: #ef4444; }
+
+/* ================= TRANG ĐĂNG NHẬP ================= */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: #f1f5f9;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  padding: 32px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.login-container h1 {
+  text-align: center;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+
+.login-container > p {
+  text-align: center;
+  color: var(--muted);
+  margin-bottom: 25px;
+}
+
+.login-field {
+  margin-bottom: 18px;
+}
+
+.login-field label {
+  display: block;
+  margin-bottom: 7px;
+  font-weight: 600;
+}
+
+.login-field input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+}
+
+.login-field input:focus {
+  border-color: var(--blue);
+}
+
+.login-container button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: var(--blue);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-container button:hover {
+  background: #2563eb;
+}
+
+.login-container button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.login-error {
+  color: #dc2626;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+/* ================= NÚT ĐĂNG XUẤT ================= */
+.logout-btn {
+  position: absolute;
+  bottom: 20px;
+  left: 14px;
+  width: calc(100% - 28px);
+  padding: 11px;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 900px) {
+  .logout-btn {
+    width: 44px;
+    left: 10px;
+    padding: 10px 4px;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 0;
+  }
+}
